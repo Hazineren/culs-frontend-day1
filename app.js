@@ -1,14 +1,20 @@
-// Loads the herbs from data/herbs.json and shows each one as a card.
+// Loads the herb list from data/index.json, then each herb from data/<id>.json,
+// and shows each one as a card.
 
 const list = document.querySelector("#herbs-list")
 const count = document.querySelector(".count")
 
-async function loadHerbs() {
-  const response = await fetch("data/herbs.json")
+async function loadJSON(path) {
+  const response = await fetch(path)
   if (!response.ok) {
     throw new Error(`Could not load ${response.url}: ${response.status} ${response.statusText}`)
   }
   return response.json()
+}
+
+async function loadHerbs() {
+  const ids = await loadJSON("data/index.json")
+  return Promise.all(ids.map(id => loadJSON(`data/${id}.json`)))
 }
 
 function element(tag, className, text) {
