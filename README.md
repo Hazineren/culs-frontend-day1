@@ -60,6 +60,54 @@ You are done when:
 index.html    the page
 style.css     how it looks
 app.js        what it does
-data/         the herbs, as JSON
+data/         the herbs, as JSON: index.json and one <herb>.json per herb
 images/       the logo and a picture
 ```
+
+## The herb data
+
+Every herb lives in its own file, `data/<id>.json`.
+`index.html#<id>` shows that herb, and the garden page shows them all.
+
+### `data/index.json`
+
+A list of herb ids, in the order the herbs appear on the garden page:
+
+```json
+["basil", "spearmint", "rosemary"]
+```
+
+An id is the herb's file name without `.json`.
+Use lowercase letters, and a hyphen between words (`lemon-balm`).
+Do not use an id that a part of the page already has: `main`, `home`, `herbs`, `herbs-list`, `visit`, `about` or `herb-detail`.
+
+### `data/<id>.json`
+
+One object with four fields, all of them text:
+
+| Field   | What it holds                        | Example                                 |
+|---------|--------------------------------------|-----------------------------------------|
+| `name`  | The herb's everyday English name     | `"Basil"`                               |
+| `latin` | Its botanical (Latin) name           | `"Ocimum basilicum"`                    |
+| `use`   | One short sentence on what it is for | `"Tomatoes, pesto and anything summery."` |
+| `life`  | `"annual"` or `"perennial"`          | `"annual"`                              |
+
+`data/basil.json` in full:
+
+```json
+{
+  "name": "Basil",
+  "latin": "Ocimum basilicum",
+  "use": "Tomatoes, pesto and anything summery.",
+  "life": "annual"
+}
+```
+
+### Add a herb
+
+1. Create `data/<id>.json` with the four fields above.
+2. Add the id to `data/index.json`.
+3. Open `index.html#<id>` to check it.
+
+If a herb is in `index.json` but its file is missing, the page still shows
+the other herbs and names the missing file.
