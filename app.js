@@ -3,6 +3,7 @@
 // index.html#basil shows one herb, built from data/basil.json.
 // Other hashes (#herbs, #visit, #about) are sections of the garden page.
 
+const main = document.querySelector("#main")
 const home = document.querySelector("#home")
 const detail = document.querySelector("#herb-detail")
 const list = document.querySelector("#herbs-list")
@@ -13,6 +14,8 @@ const siteTitle = document.title
 let herbIds = []
 // Why data/index.json could not be loaded, if it could not.
 let indexProblem = null
+// The herb shown last, so going back to the list can return focus to its card.
+let lastHerb = null
 
 // A file that could not be loaded. Its message is written for the visitor.
 class LoadError extends Error {}
@@ -103,16 +106,27 @@ async function showList() {
   }
 }
 
+// Move keyboard focus to a place that is not focusable by itself, like a heading.
+function moveFocus(target) {
+  if (!target.hasAttribute("tabindex")) {
+    target.tabIndex = -1
+  }
+  target.focus()
+}
+
 // Show a page of its own in place of the garden: a herb, or a problem.
 function showPage(title, ...content) {
+  const heading = element("h1", "name", title)
   detail.replaceChildren(
     link("#herbs", "back", "← All herbs"),
-    element("h1", "name", title),
+    heading,
     ...content)
   home.hidden = true
   detail.hidden = false
   document.title = `${title} · ${siteTitle}`
   window.scrollTo(0, 0)
+  // Start keyboard and screen reader users at the new page's heading.
+  moveFocus(heading)
 }
 
 function showProblem(title, text) {
@@ -125,6 +139,7 @@ async function showHerb(id) {
     const herb = await loadJSON(`data/${id}.json`)
     // The visitor may have moved on while the file was loading.
     if (location.hash !== hash) return
+    lastHerb = id
     showPage(herb.name,
       element("p", "latin", herb.latin),
       element("p", "use", herb.use),
@@ -140,10 +155,16 @@ function showHome(section) {
   detail.hidden = true
   home.hidden = false
   document.title = siteTitle
-  // The browser could not scroll to a section while it was hidden, so do it now.
+  // The browser could not scroll to a section while it was hidden, so do it now,
+  // and move focus there so Tab carries on from that section.
   const target = section && document.getElementById(section)
-  if (target) {
+  const lastCard = section === "herbs" && lastHerb && list.querySelector(`a[href="#${CSS.escape(lastHerb)}"]`)
+  if (lastCard) {
     target.scrollIntoView()
+    lastCard.focus({ preventScroll: true })
+  } else if (target) {
+    target.scrollIntoView()
+    moveFocus(target)
   } else {
     window.scrollTo(0, 0)
   }
@@ -151,7 +172,7 @@ function showHome(section) {
 
 function isSection(id) {
   const target = document.getElementById(id)
-  return target !== null && home.contains(target)
+  return target !== null && !detail.contains(target)
 }
 
 // The part of the address after #, e.g. "basil".
@@ -177,6 +198,13 @@ function route() {
     showProblem("Unknown herb", `No herb called “${id}” grows here. Pick one from the list.`)
   }
 }
+
+// "Skip to content" jumps to the main content without changing the address,
+// so it also works on a herb's page.
+document.querySelector(".skip-link").addEventListener("click", event => {
+  event.preventDefault()
+  moveFocus(main)
+})
 
 async function start() {
   try {

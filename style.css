@@ -25,6 +25,37 @@ a {
   color: var(--leaf);
 }
 
+/* A clear ring around whatever the keyboard is on. */
+:focus-visible {
+  outline: 3px solid var(--leaf);
+  outline-offset: 2px;
+}
+
+.site-header :focus-visible {
+  outline-color: white;
+}
+
+/* Places JavaScript moves focus to (tabindex="-1") need no ring; the reader is already there. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Hidden until a keyboard user tabs onto it. */
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  background: white;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
 .site-header {
   display: flex;
   flex-wrap: wrap;
@@ -116,6 +147,16 @@ section {
 
 .card:hover {
   border-color: var(--leaf);
+}
+
+/* Draw the focus ring around the whole card, which the link covers. */
+.card-link:focus-visible {
+  outline: none;
+}
+
+.card-link:focus-visible::after {
+  outline: 3px solid var(--leaf);
+  outline-offset: 2px;
 }
 
 .latin {
