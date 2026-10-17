@@ -8,12 +8,17 @@ const home = document.querySelector("#home")
 const detail = document.querySelector("#herb-detail")
 const list = document.querySelector("#herbs-list")
 const count = document.querySelector(".count")
+const search = document.querySelector("#herb-search")
 const siteTitle = document.title
 
 // The herb ids from data/index.json, e.g. "basil".
 let herbIds = []
 // Why data/index.json could not be loaded, if it could not.
 let indexProblem = null
+// The herbs that loaded, as { id, herb }, how many did not, and why.
+let loaded = []
+let missing = 0
+let loadProblems = ""
 // The herb shown last, so going back to the list can return focus to its card.
 let lastHerb = null
 
@@ -83,26 +88,48 @@ function showCount(text, isProblem) {
 
 async function showList() {
   const results = await Promise.allSettled(herbIds.map(id => loadJSON(`data/${id}.json`)))
-  const cards = []
   const problems = new Set()
   results.forEach((result, i) => {
     if (result.status === "fulfilled") {
-      cards.push(card(result.value, herbIds[i]))
+      loaded.push({ id: herbIds[i], herb: result.value })
     } else {
       expectLoadError(result.reason)
       problems.add(result.reason.message)
     }
   })
-  list.replaceChildren(...cards)
+  missing = herbIds.length - loaded.length
+  loadProblems = [...problems].join(" ")
 
-  const problemText = [...problems].join(" ")
-  if (cards.length === 0) {
-    showCount(`The herbs could not be loaded. ${problemText}`, true)
-  } else if (problems.size > 0) {
-    const missing = herbIds.length - cards.length
-    showCount(`${cards.length} herbs grow here, but ${missing} could not be loaded. ${problemText}`, true)
+  if (loaded.length === 0) {
+    showCount(`The herbs could not be loaded. ${loadProblems}`, true)
+    return
+  }
+  search.disabled = false
+  search.addEventListener("input", showCards)
+  showCards()
+}
+
+function matches(herb, query) {
+  return [herb.name, herb.latin, herb.use, herb.life]
+    .some(text => (text ?? "").toLowerCase().includes(query))
+}
+
+// Show the cards of the herbs that match what is typed in the search box.
+function showCards() {
+  const typed = search.value.trim()
+  const query = typed.toLowerCase()
+  const shown = loaded.filter(({ herb }) => matches(herb, query))
+  list.replaceChildren(...shown.map(({ id, herb }) => card(herb, id)))
+
+  if (query && shown.length === 0) {
+    showCount(`No herb matches “${typed}”.`, false)
+  } else if (query) {
+    const verb = shown.length === 1 ? "matches" : "match"
+    showCount(`${shown.length} of ${loaded.length} herbs ${verb} “${typed}”.`, false)
+  } else if (missing > 0) {
+    showCount(`${loaded.length} herbs grow here, but ${missing} could not be loaded. ${loadProblems}`, true)
   } else {
-    showCount(`${cards.length} herbs grow here.`, false)
+    showCount(`${loaded.length} herbs grow here.`, false)
   }
 }
 

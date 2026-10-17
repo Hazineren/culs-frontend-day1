@@ -79,7 +79,7 @@ A list of herb ids, in the order the herbs appear on the garden page:
 
 An id is the herb's file name without `.json`.
 Use lowercase letters, and a hyphen between words (`lemon-balm`).
-Do not use an id that a part of the page already has: `main`, `home`, `herbs`, `herbs-list`, `visit`, `about` or `herb-detail`.
+Do not use an id that a part of the page already has: `main`, `home`, `herbs`, `herb-search`, `herbs-list`, `visit`, `about` or `herb-detail`.
 
 ### `data/<id>.json`
 
