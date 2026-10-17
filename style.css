@@ -95,6 +95,7 @@ section {
 }
 
 .card {
+  position: relative;
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
@@ -103,6 +104,18 @@ section {
 
 .card h3 {
   margin: 0;
+}
+
+/* The name link covers the whole card, so the card is one click target and one Tab stop. */
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+}
+
+.card:hover {
+  border-color: var(--leaf);
 }
 
 .latin {
@@ -125,6 +138,11 @@ footer {
   border-top: 1px solid var(--line);
   text-align: center;
   color: var(--soil);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
 }
 
 .herb-detail h1 {

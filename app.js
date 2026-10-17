@@ -27,10 +27,18 @@ function element(tag, className, text) {
   return node
 }
 
-function card(herb) {
+function link(href, className, text) {
+  const node = element("a", className, text)
+  node.href = href
+  return node
+}
+
+function card(herb, id) {
   const item = element("li", "card", "")
+  const name = element("h3", "name", "")
+  name.append(link(`#${id}`, "card-link", herb.name))
   item.append(
-    element("h3", "name", herb.name),
+    name,
     element("p", "latin", herb.latin),
     element("p", "use", herb.use),
     element("p", "life", herb.life))
@@ -39,13 +47,14 @@ function card(herb) {
 
 async function showList() {
   const herbs = await Promise.all(herbIds.map(id => loadJSON(`data/${id}.json`)))
-  list.replaceChildren(...herbs.map(card))
+  list.replaceChildren(...herbs.map((herb, i) => card(herb, herbIds[i])))
   count.textContent = `${herbs.length} herbs grow here.`
 }
 
 async function showHerb(id) {
   const herb = await loadJSON(`data/${id}.json`)
   detail.replaceChildren(
+    link("#herbs", "back", "← All herbs"),
     element("h1", "name", herb.name),
     element("p", "latin", herb.latin),
     element("p", "use", herb.use),
