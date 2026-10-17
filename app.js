@@ -11,13 +11,41 @@ const siteTitle = document.title
 
 // The herb ids from data/index.json, e.g. "basil".
 let herbIds = []
+// Why data/index.json could not be loaded, if it could not.
+let indexProblem = null
+
+// A file that could not be loaded. Its message is written for the visitor.
+class LoadError extends Error {}
 
 async function loadJSON(path) {
-  const response = await fetch(path)
-  if (!response.ok) {
-    throw new Error(`Could not load ${response.url}: ${response.status} ${response.statusText}`)
+  let response
+  try {
+    response = await fetch(path)
+  } catch {
+    // fetch() itself fails when there is no server to ask.
+    if (location.protocol === "file:") {
+      throw new LoadError("This page needs a web server. Run npx serve in the project folder and open the address it prints.")
+    }
+    throw new LoadError("The server did not answer. Check that it is still running, then reload the page.")
   }
-  return response.json()
+  if (response.status === 404) {
+    throw new LoadError(`${path} is missing.`)
+  }
+  if (!response.ok) {
+    throw new LoadError(`${path} could not be loaded: ${response.status} ${response.statusText}.`)
+  }
+  try {
+    return await response.json()
+  } catch {
+    throw new LoadError(`${path} is not valid JSON.`)
+  }
+}
+
+// Let real bugs reach the Console; only expected load problems are shown on the page.
+function expectLoadError(error) {
+  if (!(error instanceof LoadError)) {
+    throw error
+  }
 }
 
 function element(tag, className, text) {
@@ -45,24 +73,67 @@ function card(herb, id) {
   return item
 }
 
+function showCount(text, isProblem) {
+  count.textContent = text
+  count.classList.toggle("problem", isProblem)
+}
+
 async function showList() {
-  const herbs = await Promise.all(herbIds.map(id => loadJSON(`data/${id}.json`)))
-  list.replaceChildren(...herbs.map((herb, i) => card(herb, herbIds[i])))
-  count.textContent = `${herbs.length} herbs grow here.`
+  const results = await Promise.allSettled(herbIds.map(id => loadJSON(`data/${id}.json`)))
+  const cards = []
+  const problems = new Set()
+  results.forEach((result, i) => {
+    if (result.status === "fulfilled") {
+      cards.push(card(result.value, herbIds[i]))
+    } else {
+      expectLoadError(result.reason)
+      problems.add(result.reason.message)
+    }
+  })
+  list.replaceChildren(...cards)
+
+  const problemText = [...problems].join(" ")
+  if (cards.length === 0) {
+    showCount(`The herbs could not be loaded. ${problemText}`, true)
+  } else if (problems.size > 0) {
+    const missing = herbIds.length - cards.length
+    showCount(`${cards.length} herbs grow here, but ${missing} could not be loaded. ${problemText}`, true)
+  } else {
+    showCount(`${cards.length} herbs grow here.`, false)
+  }
+}
+
+// Show a page of its own in place of the garden: a herb, or a problem.
+function showPage(title, ...content) {
+  detail.replaceChildren(
+    link("#herbs", "back", "← All herbs"),
+    element("h1", "name", title),
+    ...content)
+  home.hidden = true
+  detail.hidden = false
+  document.title = `${title} · ${siteTitle}`
+  window.scrollTo(0, 0)
+}
+
+function showProblem(title, text) {
+  showPage(title, element("p", "problem", text))
 }
 
 async function showHerb(id) {
-  const herb = await loadJSON(`data/${id}.json`)
-  detail.replaceChildren(
-    link("#herbs", "back", "← All herbs"),
-    element("h1", "name", herb.name),
-    element("p", "latin", herb.latin),
-    element("p", "use", herb.use),
-    element("p", "life", herb.life))
-  home.hidden = true
-  detail.hidden = false
-  document.title = `${herb.name} · ${siteTitle}`
-  window.scrollTo(0, 0)
+  const hash = location.hash
+  try {
+    const herb = await loadJSON(`data/${id}.json`)
+    // The visitor may have moved on while the file was loading.
+    if (location.hash !== hash) return
+    showPage(herb.name,
+      element("p", "latin", herb.latin),
+      element("p", "use", herb.use),
+      element("p", "life", herb.life))
+  } catch (error) {
+    expectLoadError(error)
+    if (location.hash !== hash) return
+    showProblem("This herb could not be loaded", error.message)
+  }
 }
 
 function showHome(section) {
@@ -78,21 +149,52 @@ function showHome(section) {
   }
 }
 
+function isSection(id) {
+  const target = document.getElementById(id)
+  return target !== null && home.contains(target)
+}
+
+// The part of the address after #, e.g. "basil".
+function currentHash() {
+  const hash = location.hash.slice(1)
+  try {
+    return decodeURIComponent(hash)
+  } catch {
+    return hash
+  }
+}
+
 // Decide what to show from the part of the address after #.
 function route() {
-  const id = decodeURIComponent(location.hash.slice(1))
-  if (herbIds.includes(id)) {
+  const id = currentHash()
+  if (id === "" || isSection(id)) {
+    showHome(id)
+  } else if (indexProblem) {
+    showProblem("The herbs could not be loaded", indexProblem)
+  } else if (herbIds.includes(id)) {
     showHerb(id)
   } else {
-    showHome(id)
+    showProblem("Unknown herb", `No herb called “${id}” grows here. Pick one from the list.`)
   }
 }
 
 async function start() {
-  herbIds = await loadJSON("data/index.json")
+  try {
+    const ids = await loadJSON("data/index.json")
+    if (!Array.isArray(ids)) {
+      throw new LoadError("data/index.json should be a list of herb ids.")
+    }
+    herbIds = ids
+  } catch (error) {
+    expectLoadError(error)
+    indexProblem = error.message
+    showCount(`The herbs could not be loaded. ${error.message}`, true)
+  }
   window.addEventListener("hashchange", route)
   route()
-  showList()
+  if (!indexProblem) {
+    showList()
+  }
 }
 
 start()
