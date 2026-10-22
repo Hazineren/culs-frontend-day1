@@ -111,3 +111,42 @@ One object with four fields, all of them text:
 
 If a herb is in `index.json` but its file is missing, the page still shows
 the other herbs and names the missing file.
+
+## Team
+
+Live site: <https://hazineren.github.io/culs-frontend-day1/>
+
+| | GitHub | Course |
+|---|---|---|
+| Eren Hazine | [@Hazineren](https://github.com/Hazineren) | Study Block, CZU Prague |
+| Uğur Tankut | [@ugurtankut](https://github.com/ugurtankut) | Study Block, CZU Prague |
+
+We worked in pair programming on Saturday 17 Oct 2026.
+
+### Eren Hazine
+
+Day 1 – debugging the broken site:
+
+- [`6dab983`](https://github.com/Hazineren/culs-frontend-day1/commit/6dab983) Fix stylesheet path so the page loads style.css instead of a missing css/style.css.
+- [`692605e`](https://github.com/Hazineren/culs-frontend-day1/commit/692605e) Close the intro herb link so it no longer wraps the rest of the page.
+- [`089ca5f`](https://github.com/Hazineren/culs-frontend-day1/commit/089ca5f) Point the hero image at garden.svg, the file that actually exists.
+- [`1a6f37b`](https://github.com/Hazineren/culs-frontend-day1/commit/1a6f37b) Fetch data/herbs.json, the herb data file that exists in the project.
+- [`5a55207`](https://github.com/Hazineren/culs-frontend-day1/commit/5a55207) Select #herbs-list so loaded herb cards are inserted into the page.
+- [`9d9d777`](https://github.com/Hazineren/culs-frontend-day1/commit/9d9d777) Point the Visit nav link at #visit so it reaches the Visit section.
+- [`d85c604`](https://github.com/Hazineren/culs-frontend-day1/commit/d85c604) Correct the cards display property so the herb list lays out as a grid.
+- [`f83e9f1`](https://github.com/Hazineren/culs-frontend-day1/commit/f83e9f1) Rename images/Logo.svg to logo.svg so the logo and favicon load on case-sensitive servers.
+
+Day 3 – one page for every herb:
+
+- [`5e1e416`](https://github.com/Hazineren/culs-frontend-day1/commit/5e1e416) Show one herb at index.html#&lt;herb&gt;, built by JavaScript from data/&lt;herb&gt;.json.
+- [`031f573`](https://github.com/Hazineren/culs-frontend-day1/commit/031f573) Link each herb card to its page, and add an All herbs link back to the list.
+- [`e9b39b3`](https://github.com/Hazineren/culs-frontend-day1/commit/e9b39b3) Show a clear message when a herb is unknown, a data file is missing, or there is no server.
+- [`5e28ee8`](https://github.com/Hazineren/culs-frontend-day1/commit/5e28ee8) Document the herb data format in the README.
+
+Publishing: put the site on GitHub Pages.
+
+### Uğur Tankut
+
+- [`7f54af8`](https://github.com/Hazineren/culs-frontend-day1/commit/7f54af8) Split herbs.json into one data/&lt;herb&gt;.json per herb, listed in data/index.json.
+- [`36eae92`](https://github.com/Hazineren/culs-frontend-day1/commit/36eae92) Make the site work with the keyboard alone.
+- [`3924220`](https://github.com/Hazineren/culs-frontend-day1/commit/3924220) Add a search box that filters the herb cards as you type.
